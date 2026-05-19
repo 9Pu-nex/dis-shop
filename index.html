@@ -298,6 +298,16 @@ footer strong{color:var(--primary);}
   /* Arrows on cards — always visible on touch */
   .carr-btn{opacity:1;width:24px;height:24px;font-size:.8rem;}
 
+  /* Loading spinner overlay */
+  .spinner-ov{position:fixed;inset:0;background:rgba(15,36,68,.7);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+  .spinner{width:48px;height:48px;border:5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;}
+  .btn-spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:4px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .spinner-txt{color:#fff;font-size:.95rem;font-weight:600;letter-spacing:.3px;}
+  .spinner-bar-wrap{width:200px;height:4px;background:rgba(255,255,255,.25);border-radius:4px;overflow:hidden;}
+  .spinner-bar{height:100%;background:#fff;border-radius:4px;animation:bar 1.6s ease-in-out infinite;}
+  @keyframes bar{0%{width:0%;margin-left:0;}50%{width:60%;margin-left:20%;}100%{width:0%;margin-left:100%;}}
+
   /* Admin panel */
   .adm-card{padding:12px;}
   .adm-sel{font-size:.78rem;}
@@ -496,6 +506,18 @@ footer strong{color:var(--primary);}
           style="background:var(--primary);color:#fff;border:none;padding:10px 18px;border-radius:8px;font-family:'Inter',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;">Login</button>
       </div>
       <div id="admContent"></div>
+    </div>
+  </div>
+</div>
+
+<div id="spinnerOv" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999999999;align-items:center;justify-content:center;">
+  <style>#spinnerOv .sp-ring{animation:sp-spin .8s linear infinite;}@keyframes sp-spin{to{transform:rotate(360deg);}}#spinnerOv .sp-bar{animation:sp-bar 1.6s ease-in-out infinite;}@keyframes sp-bar{0%{width:0%;margin-left:0;}50%{width:60%;margin-left:20%;}100%{width:0%;margin-left:100%;}}</style>
+  <div style="background:#fff;border-radius:20px;padding:40px 48px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4);max-width:300px;width:90%;">
+    <div class="sp-ring" style="width:56px;height:56px;border:5px solid #e2e8f0;border-top-color:#1a3a6b;border-radius:50%;margin:0 auto 20px;"></div>
+    <div style="font-size:1.1rem;font-weight:700;color:#1a3a6b;margin-bottom:8px;" id="spinnerTxt">Sending your order...</div>
+    <div style="font-size:.85rem;color:#94a3b8;">Please wait, do not close this page</div>
+    <div style="margin-top:16px;height:4px;background:#e2e8f0;border-radius:4px;overflow:hidden;">
+      <div class="sp-bar" style="height:100%;background:#1a3a6b;border-radius:4px;width:0%;"></div>
     </div>
   </div>
 </div>
@@ -1102,6 +1124,8 @@ async function submitOrder(){
   const pickup=document.getElementById('oPickup').value;
   const notes=(document.getElementById('oNotes').value||'').trim();
   const btn=document.querySelector('.sub-btn');
+  // Show loading spinner
+  showSpinner('Sending your order...');
   if(btn){btn.disabled=true;btn.textContent=t('sending');}
   const orderData={ref,name:stuName,classId:gradeLabel,email,phone,pickup,notes,
     items:cart.map(function(i){return {name:i.name,size:i.size,price:i.price,qty:i.qty};})};
@@ -1147,6 +1171,7 @@ async function submitOrder(){
     +'<div style="margin:0 24px 16px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 14px;font-size:.83rem;color:#166534;">'
     +'💬 Please send the transfer slip to <strong>DIS Line Finance</strong>'+'</div>'
     +'<div style="padding:0 24px 24px;"><button class="done-btn" style="width:100%;" onclick="closeOrdModal();clearCart()">'+t('done')+'</button></div>';
+  hideSpinner();
   cart=[];updateCount();
 }
 
@@ -1329,6 +1354,27 @@ function removeOrder(ref){
 
 // Secret: triple-click the logo to open admin
 let logoClicks=0,logoTimer=null;
+function showSpinner(msg){
+  var ov = document.getElementById('spinnerOv');
+  var txt = document.getElementById('spinnerTxt');
+  if(ov){
+    ov.style.cssText = 'display:flex!important;position:fixed!important;inset:0!important;background:rgba(0,0,0,.75)!important;z-index:999999999!important;align-items:center!important;justify-content:center!important;';
+  }
+  if(txt) txt.textContent = msg || 'Sending your order...';
+  var btn = document.querySelector('.sub-btn');
+  if(btn){
+    btn.disabled = true;
+    btn.innerHTML = '<span class="btn-spin"></span> Sending...';
+  }
+}
+
+function hideSpinner(){
+  var ov = document.getElementById('spinnerOv');
+  if(ov) ov.style.display = 'none';
+  var btn = document.querySelector('.sub-btn');
+  if(btn){ btn.disabled=false; btn.innerHTML='Place Order'; }
+}
+
 function handleLogoClik(){
   logoClicks++;
   clearTimeout(logoTimer);
