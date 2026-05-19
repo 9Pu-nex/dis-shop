@@ -953,9 +953,9 @@ function onGradeChange(){
       : '<option value="" data-email="">'+t('noStu')+'</option>';
     sel.disabled = !g;
 
-    // Clear email field when grade changes
+    // Clear email when grade changes — but not for guest since they type it manually
     const emailEl = document.getElementById('oEmail');
-    if(emailEl){ emailEl.value=''; emailEl.style.borderColor=''; }
+    if(emailEl && g !== '__guest__'){ emailEl.value=''; emailEl.style.borderColor=''; }
   }
 }
 function onStudentChange(){
